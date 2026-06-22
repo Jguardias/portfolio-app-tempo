@@ -1,10 +1,10 @@
 # Tempo 📱
 
-**Tempo** es una aplicación de bienestar digital y productividad diseñada para profesionales que buscan optimizar su relación con la tecnología. A diferencia de las aplicaciones tradicionales de bloqueo, Tempo actúa como un "mentor de atención" que utiliza intervenciones inteligentes para fomentar la autogestión en lugar de la restricción pasiva.
+**Tempo** es una herramienta de bienestar digital diseñada para quienes buscan optimizar su relación con la tecnología y retomar el control de su tiempo frente a la pantalla. A diferencia de las aplicaciones de bloqueo tradicionales, Tempo actúa como un asistente de atención que fomenta la autogestión, sustituyendo las restricciones rígidas por alertas que invitan a la reflexión.
 
 ## 🚀 Propósito
 
-El objetivo de Tempo es romper el ciclo de consumo inconsciente de aplicaciones móviles. Mediante el uso de `UsageStatsManager` de Android, la aplicación detecta patrones de uso y presenta "nudge" (pequeños empujones) que invitan al usuario a reflexionar sobre su intención antes de continuar navegando.
+El objetivo es ayudar al usuario a gestionar su consumo digital mediante una experiencia menos impulsiva. Mediante la integración con el API `UsageStatsManager` de Android, la aplicación monitorea el tiempo de uso en tiempo real y despliega alertas cuando se superan umbrales predefinidos. Esta pausa contextual permite al usuario decidir si desea continuar navegando o retomar sus actividades, promoviendo un uso intencional del dispositivo sin recurrir a bloqueos invasivos.
 
 ## 🛠 Stack Tecnológico
 
@@ -16,9 +16,9 @@ El objetivo de Tempo es romper el ciclo de consumo inconsciente de aplicaciones 
 
 ## 🔑 Características Diferenciales
 
-- **Enfoque en Intención**: No bloqueamos aplicaciones; intervenimos con una capa de reflexión que devuelve el control al usuario.
-- **Intervención no Invasiva**: Uso estratégico de capas de interfaz para no interrumpir el flujo de trabajo innecesariamente.
-- **Arquitectura Escalable**: Código modular diseñado para facilitar el mantenimiento y la escalabilidad de nuevas funcionalidades de comportamiento.
+- **Enfoque en la Intención**: No bloqueamos aplicaciones; intervenimos mediante una capa de reflexión que devuelve el control de la decisión al usuario.
+- **Intervención no Invasiva**: Uso estratégico de capas de interfaz para interactuar solo cuando es necesario, sin interrumpir el flujo de trabajo del usuario innecesariamente.
+- **Arquitectura Escalable**: Código modular diseñado para facilitar el mantenimiento y la integración de futuras funcionalidades de análisis de comportamiento.portamiento.
 
 ## 🏗 Estructura del Proyecto
 
