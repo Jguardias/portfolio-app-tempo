@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MainApp());
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tempo/config/router/app_router.dart';
+import 'package:tempo/config/theme/app_theme.dart';
+void main() async{
+  
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+    return MaterialApp.router(
+      title: "Tempo",
+      debugShowCheckedModeBanner: false,
+      routerConfig: appRoute,
+      theme: AppTheme().getTheme(),
     );
   }
 }
+

@@ -1,3 +1,5 @@
+import 'package:usage_stats/usage_stats.dart';
+
 class AppUsageModel {
   final String packageName;
   final String appName;
@@ -11,12 +13,14 @@ class AppUsageModel {
     required this.totalTimeInForeground,
   });
 
-  factory AppUsageModel.fromJson(Map<String, dynamic> json) {
+  factory AppUsageModel.fromJson(UsageInfo info) {
+    final packageName = info.packageName ?? "Desconocida";
+    final appName = packageName.split('.').last.toUpperCase();
     return AppUsageModel(
-      packageName: json['packageName'],
-      appName: json['appName'],
-      totalTimeInForeground: Duration(milliseconds: json['totalTimeInForeground'] ?? 0),
-      lastTimeUsed: DateTime.fromMillisecondsSinceEpoch(json['lastTimeUsed'] ?? 0),
+      packageName: packageName,
+      appName:  appName,
+      totalTimeInForeground: Duration(milliseconds: int.tryParse(info.totalTimeInForeground ?? '0') ?? 0),
+      lastTimeUsed: DateTime.fromMillisecondsSinceEpoch(int.tryParse(info.lastTimeUsed ?? '0') ?? 0),
     );
   }
 }
