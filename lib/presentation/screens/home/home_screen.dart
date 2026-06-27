@@ -23,21 +23,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(appUsageProvider),
-          )
+          ),
         ],
       ),
       body: appsUsageAsync.when(
         data: (apps) {
           if (apps.isEmpty) {
             return const Center(child: Text("No hay datos disponibles."));
-          }
+          }    
           return ListView.builder(
             itemCount: apps.length,
             itemBuilder: (context, index) {
               final app = apps[index];
               return ListTile(
+                leading: app.icon != null
+                    ? Image.memory(app.icon!, width: 40, height: 40)
+                    : const Icon(Icons.apps, size: 40),
                 title: Text(app.appName),
-                subtitle: Text("Uso: ${app.totalTimeInForeground.inMinutes} min"),
+                subtitle: Text(
+                  "Uso: ${app.totalTimeInForeground.inMinutes} min",
+                ),
               );
             },
           );

@@ -8,6 +8,7 @@ class AppUsageMapper {
       appName: dto.appName,
       lastTimeUsed: dto.lastTimeUsed,
       totalTimeInForeground:  dto.totalTimeInForeground,
+      icon: dto.icon
     );
   }
 }

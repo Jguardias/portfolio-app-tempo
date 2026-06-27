@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_device_apps: ^0.8.1
   flutter_riverpod: ^2.6.1
   go_router: ^17.3.0
   usage_stats: ^1.3.1

@@ -4,5 +4,5 @@ import 'package:tempo/infrastructure/datasources/app_usage_datasource_impl.dart'
 import 'package:tempo/infrastructure/repositories/app_usage_repository_impl.dart';
 
 final appUsageRepositoryProvider = Provider<AppUsageRepositories>((ref){
-  return AppUsageRepositoryImpl(AppUsageDatasourceImpl());
+  return AppUsageRepositoryImpl(AppUsageDatasourceImpl(), AppIconDatasourceImpl());
 });
