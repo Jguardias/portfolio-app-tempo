@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+ import 'dart:typed_data';
 
 class AppUsage {
   final String packageName;
@@ -12,6 +12,6 @@ class AppUsage {
     required this.packageName,
     required this.lastTimeUsed,
     required this.totalTimeInForeground, 
-    required this.icon,
+     this.icon,
   });
 }

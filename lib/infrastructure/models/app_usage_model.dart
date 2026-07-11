@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-import 'package:usage_stats/usage_stats.dart';
 
 class AppUsageModel {
   final String packageName;
@@ -16,14 +15,17 @@ class AppUsageModel {
     this.icon
   });
 
-  factory AppUsageModel.fromJson(UsageInfo info) {
-    final packageName = info.packageName ?? "Desconocida";
-    final appName = packageName.split('.').last.toUpperCase();
+factory AppUsageModel.fromCalculatedData({
+    required String packageName,
+    required int totalTimeMs,
+    required int lastUsedMs,
+  }) {
     return AppUsageModel(
       packageName: packageName,
-      appName:  appName,
-      totalTimeInForeground: Duration(milliseconds: int.tryParse(info.totalTimeInForeground ?? '0') ?? 0),
-      lastTimeUsed: DateTime.fromMillisecondsSinceEpoch(int.tryParse(info.lastTimeUsed ?? '0') ?? 0),
+      appName: "", 
+      totalTimeInForeground: Duration(milliseconds: totalTimeMs),
+      lastTimeUsed: DateTime.fromMillisecondsSinceEpoch(lastUsedMs),
     );
   }
 }
+

@@ -9,14 +9,16 @@ class AppUsageRepositoryImpl implements AppUsageRepositories {
 
   @override
   Future<List<AppUsage>> getDailyUsageStats() async {
+    
     final apps = await dataSource.getDailyUsageStats();
 
     return await Future.wait(
       apps.map((app) async {
         final icon = await iconDatasource.getIcon(app.packageName);
+         final name  =  await iconDatasource.getAppName(app.packageName);
         return AppUsage(
         packageName: app.packageName,
-        appName: app.appName,
+        appName: name ?? app.packageName,
         totalTimeInForeground: app.totalTimeInForeground,
         lastTimeUsed: app.lastTimeUsed,
         icon: icon,

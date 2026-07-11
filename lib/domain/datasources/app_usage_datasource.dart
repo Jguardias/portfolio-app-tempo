@@ -8,4 +8,5 @@ abstract class AppUsageDatasources {
 
 abstract class AppIconDatasource {
   Future<Uint8List?> getIcon(String packageName);
+  Future<String?> getAppName(String packageName);
 }

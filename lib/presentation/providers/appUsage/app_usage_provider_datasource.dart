@@ -6,3 +6,4 @@ final appUsageProvider = FutureProvider<List<AppUsage>>((ref) async {
   final repository = ref.watch(appUsageRepositoryProvider);
   return await repository.getDailyUsageStats();
 });
+
