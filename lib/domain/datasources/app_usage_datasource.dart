@@ -1,12 +1,10 @@
-import 'dart:typed_data';
+import 'package:tempo/domain/entities/app_info_device.dart';
 import 'package:tempo/domain/entities/app_usage.dart';
 
-
 abstract class AppUsageDatasources {
-   Future<List<AppUsage>> getDailyUsageStats();
+  Future<List<AppUsage>> getDailyUsageStats();
 }
 
-abstract class AppIconDatasource {
-  Future<Uint8List?> getIcon(String packageName);
-  Future<String?> getAppName(String packageName);
+abstract class AppInfoDatasource {
+  Future<AppInfoDevice> getAppInfo(String packageName);
 }

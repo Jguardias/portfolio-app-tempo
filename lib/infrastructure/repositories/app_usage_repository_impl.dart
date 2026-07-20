@@ -4,8 +4,8 @@ import 'package:tempo/domain/datasources/app_usage_datasource.dart';
 
 class AppUsageRepositoryImpl implements AppUsageRepositories {
   final AppUsageDatasources dataSource;
-  final AppIconDatasource iconDatasource;
-  AppUsageRepositoryImpl(this.dataSource, this.iconDatasource);
+  final AppInfoDatasource infoAppDatasource;
+  AppUsageRepositoryImpl(this.dataSource, this.infoAppDatasource);
 
   @override
   Future<List<AppUsage>> getDailyUsageStats() async {
@@ -14,14 +14,18 @@ class AppUsageRepositoryImpl implements AppUsageRepositories {
 
     return await Future.wait(
       apps.map((app) async {
-        final icon = await iconDatasource.getIcon(app.packageName);
-         final name  =  await iconDatasource.getAppName(app.packageName);
+        final infoDevice = await infoAppDatasource.getAppInfo(app.packageName);
+    
         return AppUsage(
         packageName: app.packageName,
-        appName: name ?? app.packageName,
+        appName: infoDevice.appName ?? app.packageName,
         totalTimeInForeground: app.totalTimeInForeground,
         lastTimeUsed: app.lastTimeUsed,
-        icon: icon,
+        icon: infoDevice.icon,
+        category: infoDevice.category,
+        isSystemApp: infoDevice.isSystemApp,
+        firstUsed: app.firstUsed,
+        launchCount: app.launchCount,
       );
       }),
     );

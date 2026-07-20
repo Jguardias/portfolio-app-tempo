@@ -2,30 +2,35 @@ import 'dart:typed_data';
 
 class AppUsageModel {
   final String packageName;
-  final String appName;
   final Duration totalTimeInForeground;
   final DateTime lastTimeUsed;
   final Uint8List? icon;
+  final int launchCount;
+  final DateTime firstUsedMs;
 
   AppUsageModel({
-    required this.appName,
+
     required this.packageName,
     required this.lastTimeUsed,
     required this.totalTimeInForeground,
-    this.icon
+    this.icon, 
+    required this.launchCount, 
+    required this.firstUsedMs,
   });
 
-factory AppUsageModel.fromCalculatedData({
+  factory AppUsageModel.fromCalculatedData({
     required String packageName,
     required int totalTimeMs,
     required int lastUsedMs,
+  required int launchCount, 
+    required int firstUsedMs,
   }) {
     return AppUsageModel(
       packageName: packageName,
-      appName: "", 
       totalTimeInForeground: Duration(milliseconds: totalTimeMs),
-      lastTimeUsed: DateTime.fromMillisecondsSinceEpoch(lastUsedMs),
+      lastTimeUsed: DateTime.fromMillisecondsSinceEpoch(lastUsedMs), 
+      launchCount: launchCount,
+       firstUsedMs: DateTime.fromMillisecondsSinceEpoch(firstUsedMs),
     );
   }
 }
-

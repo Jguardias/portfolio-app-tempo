@@ -6,9 +6,10 @@ class AppUsageMapper {
   static AppUsage toEntity(AppUsageModel model) {
     return AppUsage(
       packageName: model.packageName,
-      appName: model.appName,
       lastTimeUsed: model.lastTimeUsed,
       totalTimeInForeground: model.totalTimeInForeground,
+      firstUsed: model.firstUsedMs,
+      launchCount: model.launchCount,
     );
   }
 }

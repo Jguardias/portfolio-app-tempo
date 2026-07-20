@@ -1,17 +1,26 @@
- import 'dart:typed_data';
+import 'dart:typed_data';
 
 class AppUsage {
   final String packageName;
-  final String appName;
+  final String?appName;
   final Duration totalTimeInForeground;
   final DateTime lastTimeUsed;
+  final DateTime? firstUsed;
   final Uint8List? icon;
+  final int launchCount;
+  final String category;
+  final bool? isSystemApp;
+
 
   AppUsage({
-    required this.appName,
+    this.appName,
     required this.packageName,
     required this.lastTimeUsed,
-    required this.totalTimeInForeground, 
-     this.icon,
+    required this.totalTimeInForeground,
+    this.icon, 
+    this.firstUsed,
+    this.launchCount = 0,
+    this.category = 'Otro', 
+    this.isSystemApp = false,
   });
 }

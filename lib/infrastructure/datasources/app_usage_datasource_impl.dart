@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-import 'package:flutter_device_apps/flutter_device_apps.dart';
 import 'package:tempo/domain/datasources/app_usage_datasource.dart';
 import 'package:tempo/domain/entities/app_usage.dart';
 import 'package:tempo/infrastructure/datasources/helpers/usage_stats_processor.dart';
@@ -19,8 +17,9 @@ class AppUsageDatasourceImpl implements AppUsageDatasources {
     final startOfToday = DateTime(now.year, now.month, now.day, 0, 0, 0);
 
     List<UsageInfo> usage = await UsageStats.queryUsageStats(startOfToday, now);
+    List<EventUsageInfo> events = await UsageStats.queryEvents(startOfToday, now);
 
-    final models = UsageStatsProcessor.process(usage, startOfToday);
+    final models = UsageStatsProcessor.process(usage,events, startOfToday);
 
     final entities = models.map((m) => AppUsageMapper.toEntity(m)).toList();
     entities.sort((a, b) => b.totalTimeInForeground.compareTo(a.totalTimeInForeground));
@@ -29,22 +28,3 @@ class AppUsageDatasourceImpl implements AppUsageDatasources {
   }
 }
 
-class AppIconDatasourceImpl implements AppIconDatasource {
-  @override
-  Future<Uint8List?> getIcon(String packageName) async {
-    final appInfo = await FlutterDeviceApps.getApp(
-      packageName,
-      includeIcon: true,
-    );
-    return appInfo?.iconBytes;
-  }
-
-  @override
-  Future<String?> getAppName(String packageName) async {
-    final appInfo = await FlutterDeviceApps.getApp(
-      packageName,
-      includeIcon: true,
-    );
-    return appInfo?.packageName;
-  }
-}
