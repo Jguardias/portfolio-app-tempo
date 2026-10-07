@@ -6,6 +6,7 @@ class AppInfoMapper {
  
   static AppInfoDevice toEntity(AppMetaData model) {
     return AppInfoDevice(
+      packageName: model.packageName,
        appName: model.appName,
         icon: model.icon,
         isSystemApp: model.isSystemApp,

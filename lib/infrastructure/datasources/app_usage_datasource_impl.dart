@@ -26,5 +26,30 @@ class AppUsageDatasourceImpl implements AppUsageDatasources {
 
     return entities;
   }
+
+@override
+  Future<String?> getForegroundAppPackageName() async {
+    bool? granted = await UsageStats.checkUsagePermission();
+    if (granted != true) return null;
+
+    final now = DateTime.now();
+    // Consultamos una ventana de tiempo corta (10 segundos atrás)
+    final startDate = now.subtract(const Duration(seconds: 10));
+
+    List<EventUsageInfo> events = await UsageStats.queryEvents(startDate, now);
+
+    if (events.isEmpty) return null;
+
+    // Recorremos desde el evento más reciente hacia el más antiguo.
+    // '1' corresponde al evento MOVE_TO_FOREGROUND / ACTIVITY_RESUMED en Android.
+    for (var i = events.length - 1; i >= 0; i--) {
+      final event = events[i];
+      if (event.eventType == '1' && event.packageName != null) {
+        return event.packageName;
+      }
+    }
+
+    return null;
+  }
 }
 

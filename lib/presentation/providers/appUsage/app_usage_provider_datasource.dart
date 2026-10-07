@@ -7,3 +7,7 @@ final appUsageProvider = FutureProvider<List<AppUsage>>((ref) async {
   return await repository.getDailyUsageStats();
 });
 
+final allAppsProvider = FutureProvider<List<AppUsage>>((ref) async {
+  final repository = ref.watch(appUsageRepositoryProvider);
+  return await repository.getAllApps();
+});

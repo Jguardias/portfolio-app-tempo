@@ -28,7 +28,7 @@ class AppUsageTile extends StatelessWidget {
           app.appName ?? "App sin nombre",
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(app.formattedDuration), // <--- USANDO LA EXTENSIÓN
+        subtitle: Text(app.formattedDuration), 
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),

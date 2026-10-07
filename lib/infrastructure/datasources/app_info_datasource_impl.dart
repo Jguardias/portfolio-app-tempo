@@ -15,5 +15,20 @@ class AppInfoDatasourceImpl implements AppInfoDatasource {
     final app = AppInfoMapper.toEntity(model);
     return app;
   }
+
+@override
+  Future<List<AppInfoDevice>> getInstalledApps() async {
+  
+    final apps = await FlutterDeviceApps.listApps(
+      includeIcons: true,
+      includeSystem: false,
+      onlyLaunchable: true,
+    );
+
+    return apps.map((app) {
+      final model = AppMetaData.fromFlutterDevice(app);
+      return AppInfoMapper.toEntity(model);
+    }).toList();
+  }
 }
 

@@ -1,42 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tempo/config/theme/app_theme.dart';
 import 'package:tempo/presentation/providers/appUsage/app_usage_provider_datasource.dart';
-import 'package:tempo/presentation/widgets/home/home_header.dart';
-import 'package:tempo/presentation/widgets/home/app_usage_tile.dart';
+import 'package:tempo/presentation/widgets/apps_config/app_config_tile.dart';
 import 'package:tempo/presentation/widgets/shared/section_header.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
-  static const name = "home-screen";
-  const HomeScreen({super.key});
+class AppsConfigScreen extends ConsumerWidget {
+  static const name = 'apps-config-screen';
+
+  const AppsConfigScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _checkOverlayPermission();
-  }
-
-  Future<void> _checkOverlayPermission() async {
-    final bool isGranted = await FlutterOverlayWindow.isPermissionGranted();
-    if (!isGranted) {
-      await FlutterOverlayWindow.requestPermission();
-    }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final apps = ref.watch(appUsageProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appsAsync = ref.watch(allAppsProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(context),
@@ -44,6 +20,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
             SliverAppBar(
               backgroundColor: AppTheme.getBackgroundColor(context),
               title: const Padding(
@@ -60,23 +37,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
+
             const SliverToBoxAdapter(child: SizedBox(height: 10)),
+
             const SectionHeader(
-              title: "Tu Equilibrio Digital.",
+              title: "Configuración de Interrupciones.",
               subtitle:
-                  "Toma conciencia de cómo usas tu tiempo y encuentra el balance perfecto para tu día a día.",
+                  "Define el tiempo límite inicial y la frecuencia con la que Tempo te invitará a pausar tu uso.",
             ),
-            apps.when(
+
+            appsAsync.when(
               data: (apps) {
                 if (apps.isEmpty) {
                   return const SliverFillRemaining(
-                    child: Center(child: Text("No hay datos disponibles.")),
+                    child: Center(
+                      child: Text("No se encontraron aplicaciones instaladas."),
+                    ),
                   );
                 }
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      return AppConfigTile(app: apps[index]);
+                    },
                     childCount: apps.length,
-                    (context, index) => AppUsageTile(app: apps[index]),
                   ),
                 );
               },
@@ -84,9 +68,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Center(child: CircularProgressIndicator()),
               ),
               error: (error, stack) => SliverToBoxAdapter(
-                child: Center(child: Text("Error: $error")),
+                child: Center(child: Text("Error al cargar aplicaciones: $error")),
               ),
             ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
           ],
         ),
       ),

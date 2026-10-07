@@ -37,8 +37,14 @@
             android:foregroundServiceType="specialUse">
             <property 
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="This app uses an overlay to provide usage alerts and time management tools over other applications."/>
+                android:value="This app uses an overlay to provide usage alerts and time management tools over other applications."/>  
         </service>
+
+        <service
+            android:name="id.flutter.flutter_background_service.BackgroundService"
+            android:exported="true"
+            tools:replace="android:exported"
+            android:foregroundServiceType="specialUse" />
         
         <meta-data
             android:name="flutterEmbedding"
