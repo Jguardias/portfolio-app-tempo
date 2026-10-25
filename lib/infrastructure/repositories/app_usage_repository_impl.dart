@@ -1,3 +1,4 @@
+import 'package:tempo/config/constants/excluded_apps.dart';
 import 'package:tempo/domain/entities/app_usage.dart';
 import 'package:tempo/domain/repositories/app_usage_repository.dart';
 import 'package:tempo/domain/datasources/app_usage_datasource.dart';
@@ -9,31 +10,36 @@ class AppUsageRepositoryImpl implements AppUsageRepositories {
 
   @override
   Future<List<AppUsage>> getDailyUsageStats() async {
-    
-    final apps = await dataSource.getDailyUsageStats();
+    final stats = await dataSource.getDailyUsageStats();
+
+    // Launchers, teclados, Ajustes y Tempo no se muestran
+    final apps =
+        stats.where((app) => !ExcludedApps.isExcluded(app.packageName)).toList();
 
     return await Future.wait(
       apps.map((app) async {
         final infoDevice = await infoAppDatasource.getAppInfo(app.packageName);
-    
+
         return AppUsage(
-        packageName: app.packageName,
-        appName: infoDevice.appName ?? app.packageName,
-        totalTimeInForeground: app.totalTimeInForeground,
-        lastTimeUsed: app.lastTimeUsed,
-        icon: infoDevice.icon,
-        category: infoDevice.category,
-        isSystemApp: infoDevice.isSystemApp,
-        firstUsed: app.firstUsed,
-        launchCount: app.launchCount,
-      );
+          packageName: app.packageName,
+          appName: infoDevice.appName ?? app.packageName,
+          totalTimeInForeground: app.totalTimeInForeground,
+          lastTimeUsed: app.lastTimeUsed,
+          icon: infoDevice.icon,
+          category: infoDevice.category,
+          isSystemApp: infoDevice.isSystemApp,
+          firstUsed: app.firstUsed,
+          launchCount: app.launchCount,
+        );
       }),
     );
   }
 
-@override
+  @override
   Future<List<AppUsage>> getAllApps() async {
-    final installedApps = await infoAppDatasource.getInstalledApps();
+    final installedApps = (await infoAppDatasource.getInstalledApps())
+        .where((app) => !ExcludedApps.isExcluded(app.packageName))
+        .toList();
     final dailyStats = await dataSource.getDailyUsageStats();
 
     final statsMap = {for (var app in dailyStats) app.packageName: app};
@@ -45,7 +51,8 @@ class AppUsageRepositoryImpl implements AppUsageRepositories {
         packageName: infoDevice.packageName,
         appName: infoDevice.appName ?? infoDevice.packageName,
         totalTimeInForeground: usage?.totalTimeInForeground ?? Duration.zero,
-        lastTimeUsed: usage?.lastTimeUsed ?? DateTime.fromMillisecondsSinceEpoch(0),
+        lastTimeUsed:
+            usage?.lastTimeUsed ?? DateTime.fromMillisecondsSinceEpoch(0),
         icon: infoDevice.icon,
         category: infoDevice.category,
         isSystemApp: infoDevice.isSystemApp,
@@ -54,14 +61,14 @@ class AppUsageRepositoryImpl implements AppUsageRepositories {
       );
     }).toList();
 
-    allAppsList.sort((a, b) =>
-      (a.appName ?? '').toLowerCase().compareTo((b.appName ?? '').toLowerCase())
-    );
+    allAppsList.sort((a, b) => (a.appName ?? '')
+        .toLowerCase()
+        .compareTo((b.appName ?? '').toLowerCase()));
 
     return allAppsList;
   }
 
-@override
+  @override
   Future<String?> getForegroundAppPackageName() {
     return dataSource.getForegroundAppPackageName();
   }

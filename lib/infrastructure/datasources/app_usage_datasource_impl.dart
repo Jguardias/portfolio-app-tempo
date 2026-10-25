@@ -1,17 +1,32 @@
 import 'package:tempo/domain/datasources/app_usage_datasource.dart';
 import 'package:tempo/domain/entities/app_usage.dart';
+import 'package:tempo/infrastructure/datasources/helpers/usage_event_tracker.dart';
 import 'package:tempo/infrastructure/datasources/helpers/usage_stats_processor.dart';
 import 'package:usage_stats/usage_stats.dart';
 import 'package:tempo/infrastructure/mappers/app_usage_mapper.dart';
 
 class AppUsageDatasourceImpl implements AppUsageDatasources {
+  final UsageEventTracker _tracker = UsageEventTracker();
+
+  bool _permissionGranted = false;
+  DateTime? _permissionCheckedAt;
+
+  /// Cachea el permiso 30 s para no consultarlo en cada ciclo.
+  Future<bool> _hasPermission() async {
+    final checkedAt = _permissionCheckedAt;
+    if (checkedAt != null &&
+        _permissionGranted &&
+        DateTime.now().difference(checkedAt).inSeconds < 30) {
+      return true;
+    }
+    _permissionGranted = (await UsageStats.checkUsagePermission()) ?? false;
+    _permissionCheckedAt = DateTime.now();
+    return _permissionGranted;
+  }
+
   @override
   Future<List<AppUsage>> getDailyUsageStats() async {
-    bool? granted = await UsageStats.checkUsagePermission();
-    if (granted != true) {
-      await UsageStats.grantUsagePermission();
-      return [];
-    }
+    if (!await _hasPermission()) return [];
 
     final now = DateTime.now();
     final startOfToday = DateTime(now.year, now.month, now.day, 0, 0, 0);
@@ -19,37 +34,27 @@ class AppUsageDatasourceImpl implements AppUsageDatasources {
     List<UsageInfo> usage = await UsageStats.queryUsageStats(startOfToday, now);
     List<EventUsageInfo> events = await UsageStats.queryEvents(startOfToday, now);
 
-    final models = UsageStatsProcessor.process(usage,events, startOfToday);
+    final models =
+        UsageStatsProcessor.process(usage, events, startOfToday, now: now);
 
     final entities = models.map((m) => AppUsageMapper.toEntity(m)).toList();
-    entities.sort((a, b) => b.totalTimeInForeground.compareTo(a.totalTimeInForeground));
+    entities.sort(
+        (a, b) => b.totalTimeInForeground.compareTo(a.totalTimeInForeground));
 
     return entities;
   }
 
-@override
+  @override
+  Future<Duration> getDailyUsageForPackage(String packageName) async {
+    if (!await _hasPermission()) return Duration.zero;
+    await _tracker.refresh();
+    return _tracker.usageFor(packageName);
+  }
+
+  @override
   Future<String?> getForegroundAppPackageName() async {
-    bool? granted = await UsageStats.checkUsagePermission();
-    if (granted != true) return null;
-
-    final now = DateTime.now();
-    // Consultamos una ventana de tiempo corta (10 segundos atrás)
-    final startDate = now.subtract(const Duration(seconds: 10));
-
-    List<EventUsageInfo> events = await UsageStats.queryEvents(startDate, now);
-
-    if (events.isEmpty) return null;
-
-    // Recorremos desde el evento más reciente hacia el más antiguo.
-    // '1' corresponde al evento MOVE_TO_FOREGROUND / ACTIVITY_RESUMED en Android.
-    for (var i = events.length - 1; i >= 0; i--) {
-      final event = events[i];
-      if (event.eventType == '1' && event.packageName != null) {
-        return event.packageName;
-      }
-    }
-
-    return null;
+    if (!await _hasPermission()) return null;
+    await _tracker.refresh();
+    return _tracker.currentForeground;
   }
 }
-

@@ -4,46 +4,64 @@ import 'package:usage_stats/usage_stats.dart';
 class UsageStatsProcessor {
   static const String _eventForeground = '1';
   static const String _eventBackground = '2';
+  static const String _eventScreenOff = '16';
 
   static List<AppUsageModel> process(
     List<UsageInfo> rawUsageData,
     List<EventUsageInfo> eventLogs,
-    DateTime startOfToday,
-  ) {
+    DateTime startOfToday, {
+    DateTime? now,
+  }) {
     final Map<String, int> totalUsageMs = {};
     final Map<String, int> lastUsedTimestamp = {};
     final Map<String, int> launchCount = {};
     final Map<String, int> firstUsedTimestamp = {};
     final Map<String, int> activeSessions = {};
-    
+
     final int startOfDayMs = startOfToday.millisecondsSinceEpoch;
-   
+    final int nowMs = (now ?? DateTime.now()).millisecondsSinceEpoch;
+
+    void closeSession(String pkg, int endTs) {
+      final int? sessionStart = activeSessions.remove(pkg);
+      if (sessionStart == null) return;
+      final int effectiveStart =
+          (sessionStart < startOfDayMs) ? startOfDayMs : sessionStart;
+      final int duration = endTs - effectiveStart;
+      if (duration > 0) {
+        totalUsageMs[pkg] = (totalUsageMs[pkg] ?? 0) + duration;
+      }
+    }
+
     for (var event in eventLogs) {
+      final String type = event.eventType ?? '';
+      final int timestamp = int.tryParse(event.timeStamp ?? '0') ?? 0;
+
+      // Pantalla apagada: se cierran todas las sesiones abiertas
+      if (type == _eventScreenOff) {
+        for (final pkg in activeSessions.keys.toList()) {
+          closeSession(pkg, timestamp);
+        }
+        continue;
+      }
+
       final String? pkg = event.packageName;
       if (pkg == null) continue;
+      if (type != _eventForeground && type != _eventBackground) continue;
 
-      final int timestamp = int.tryParse(event.timeStamp ?? '0') ?? 0;
-      final String type = event.eventType ?? '';
-      if (type != '1' && type != '2') continue;
-     
       if (type == _eventForeground) {
+        // Solo una app puede estar al frente: cerrar sesiones abiertas de otras
+        for (final other in activeSessions.keys.toList()) {
+          if (other != pkg) closeSession(other, timestamp);
+        }
         launchCount[pkg] = (launchCount[pkg] ?? 0) + 1;
-        
-        if (firstUsedTimestamp[pkg] == null || timestamp < firstUsedTimestamp[pkg]!) {
+
+        if (firstUsedTimestamp[pkg] == null ||
+            timestamp < firstUsedTimestamp[pkg]!) {
           firstUsedTimestamp[pkg] = timestamp;
         }
-        activeSessions[pkg] = timestamp;
-      } else if (type == _eventBackground && activeSessions.containsKey(pkg)) {
-        final int sessionStart = activeSessions[pkg]!;
-        
-        // Midnight boundary clamping
-        final int effectiveStart = (sessionStart < startOfDayMs) ? startOfDayMs : sessionStart;
-        final int duration = timestamp - effectiveStart;
-
-        if (duration > 0) {
-          totalUsageMs[pkg] = (totalUsageMs[pkg] ?? 0) + duration;
-        }
-        activeSessions.remove(pkg);
+        activeSessions.putIfAbsent(pkg, () => timestamp);
+      } else {
+        closeSession(pkg, timestamp);
       }
 
       if (timestamp > (lastUsedTimestamp[pkg] ?? 0)) {
@@ -51,18 +69,23 @@ class UsageStatsProcessor {
       }
     }
 
-for (var info in rawUsageData) {
+    // Sesiones todavía abiertas: se cuentan hasta el momento actual
+    for (final pkg in activeSessions.keys.toList()) {
+      closeSession(pkg, nowMs);
+    }
+
+    for (var info in rawUsageData) {
       final String? pkg = info.packageName;
       if (pkg == null) continue;
 
-      // Filter: Only include apps that have been actively launched
+      // Solo apps que se hayan abierto hoy
       if ((launchCount[pkg] ?? 0) == 0) continue;
 
       final int totalTime = int.tryParse(info.totalTimeInForeground ?? '0') ?? 0;
       if ((totalUsageMs[pkg] ?? 0) == 0 && totalTime > 0) {
         totalUsageMs[pkg] = totalTime;
       }
-      
+
       final int lastUsed = int.tryParse(info.lastTimeUsed ?? '0') ?? 0;
       if (lastUsed > (lastUsedTimestamp[pkg] ?? 0)) {
         lastUsedTimestamp[pkg] = lastUsed;

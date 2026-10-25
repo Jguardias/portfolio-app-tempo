@@ -13,7 +13,17 @@ class AppRulesRepositoryImpl implements AppRulesRepository {
   }
 
   @override
+  Future<void> saveSnooze(String packageName, DateTime snoozedUntil) {
+    return datasource.saveSnooze(packageName, snoozedUntil);
+  }
+
+  @override
   Future<AppRule?> getRuleForPackage(String packageName) {
     return datasource.getRuleForPackage(packageName);
+  }
+
+  @override
+  Future<Map<String, AppRule>> getRules() {
+    return datasource.getRules();
   }
 }

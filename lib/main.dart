@@ -2,40 +2,57 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tempo/config/router/app_router.dart';
 import 'package:tempo/config/theme/app_theme.dart';
-import 'package:tempo/presentation/overlays/overlay_view.dart';
 import 'package:tempo/infrastructure/services/tempo_background_service.dart';
+import 'package:tempo/presentation/providers/settings/theme_mode_provider.dart';
+import 'package:tempo/presentation/screens/splash/tempo_splash.dart';
 
-void main() async{
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeBackgroundService();
+
+  // Primero se dibuja la app; el servicio arranca después para no retrasar el primer cuadro.
   runApp(const ProviderScope(child: MyApp()));
+
+  initializeBackgroundService().catchError((Object e) {
+    debugPrint("[Main] No se pudo iniciar el servicio: $e");
+  });
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  bool _showSplash = true;
+
+  @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeProvider);
+    final lightTheme = AppTheme().getTheme(Brightness.light);
+    final darkTheme = AppTheme().getTheme(Brightness.dark);
+
+    if (_showSplash) {
+      return MaterialApp(
+        title: "Tempo",
+        debugShowCheckedModeBanner: false,
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: themeMode,
+        home: TempoSplash(
+          onFinished: () => setState(() => _showSplash = false),
+        ),
+      );
+    }
+
     return MaterialApp.router(
       title: "Tempo",
       debugShowCheckedModeBanner: false,
       routerConfig: appRoute,
-      theme: AppTheme().getTheme(Brightness.light),
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: themeMode,
     );
   }
-}
-
-@pragma("vm:entry-point")
-void overlayMain() {
-  runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        useMaterial3: true,
-        fontFamily: 'Roboto',
-      ),
-      home: const TempoOverlayScreen(),
-    ),
-  );
 }

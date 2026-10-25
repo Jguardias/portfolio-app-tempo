@@ -16,9 +16,17 @@ class AppInfoDatasourceImpl implements AppInfoDatasource {
     return app;
   }
 
-@override
+  @override
+  Future<String?> getAppName(String packageName) async {
+    final appInfo = await FlutterDeviceApps.getApp(
+      packageName,
+      includeIcon: false,
+    );
+    return appInfo?.appName;
+  }
+
+  @override
   Future<List<AppInfoDevice>> getInstalledApps() async {
-  
     final apps = await FlutterDeviceApps.listApps(
       includeIcons: true,
       includeSystem: false,
@@ -31,4 +39,3 @@ class AppInfoDatasourceImpl implements AppInfoDatasource {
     }).toList();
   }
 }
-

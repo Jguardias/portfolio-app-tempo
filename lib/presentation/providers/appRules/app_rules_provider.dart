@@ -6,7 +6,16 @@ import 'app_rules_provider_repository.dart';
 class AppRulesNotifier extends StateNotifier<Map<String, AppRule>> {
   final AppRulesRepository repository;
 
-  AppRulesNotifier(this.repository) : super({});
+  AppRulesNotifier(this.repository) : super({}) {
+    // Carga inicial obligatoria de las reglas desde disco
+    loadRules();
+  }
+
+  /// Carga todas las reglas guardadas desde SharedPreferences al estado en memoria
+  Future<void> loadRules() async {
+    final rules = await repository.getRules();
+    state = rules;
+  }
 
   /// Guarda una regla en SharedPreferences y actualiza el estado de Riverpod
   Future<void> saveRule(AppRule rule) async {

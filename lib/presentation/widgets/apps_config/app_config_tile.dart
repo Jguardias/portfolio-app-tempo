@@ -31,117 +31,133 @@ class AppConfigTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final primaryColor = Theme.of(context).colorScheme.primary;
 
-    // 1. Obtener las reglas guardadas desde Riverpod
-    final rulesMap = ref.watch(appRulesProvider);
-    final AppRule? existingRule = rulesMap[app.packageName];
+    // Solo se observa la regla de ESTA app (no todo el mapa)
+    final AppRule? existingRule = ref.watch(
+      appRulesProvider.select((rules) => rules[app.packageName]),
+    );
 
-    // Si existe la regla, usar sus datos; de lo contrario, usar valores por defecto
     final isEnabled = existingRule?.isEnabled ?? false;
     final initialThresholdMinutes = existingRule?.initialThresholdMinutes ?? 30;
     final repeatIntervalMinutes = existingRule?.repeatIntervalMinutes ?? 10;
 
+    final tileColor = AppTheme.getTileColor(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: AnimatedOpacity(
+      child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        opacity: isEnabled ? 1.0 : 0.55,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppTheme.getTileColor(context),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.getBorderColor(context)),
-          ),
-          child: ListTile(
-            onTap: () => _openLimitModal(context, existingRule),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-            leading: app.icon != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.memory(
-                      app.icon!,
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : Icon(
-                    Icons.apps,
-                    size: 40,
-                    color: primaryColor,
-                  ),
-            title: Text(
-              app.appName ?? app.packageName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: isEnabled
-                ? Text.rich(
-                    TextSpan(
-                      style: const TextStyle(fontSize: 13, color: AppTheme.textSegundary),
-                      children: [
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.middle,
-                          child: Icon(Icons.timer_outlined, size: 14, color: primaryColor),
-                        ),
-                        const TextSpan(text: " Aviso: "),
-                        TextSpan(
-                          text: "${initialThresholdMinutes}m",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: primaryColor,
-                          ),
-                        ),
-                        const TextSpan(text: "   •   "),
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.middle,
-                          child: Icon(Icons.repeat_rounded, size: 14, color: primaryColor),
-                        ),
-                        const TextSpan(text: " Repite: "),
-                        TextSpan(
-                          text: "c/${repeatIntervalMinutes}m",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: primaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : const Text(
-                    "Monitoreo desactivado",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.textSegundary,
-                    ),
-                  ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Switch(
-                  value: isEnabled,
-                  onChanged: (val) {
-                    // 2. Guardar el cambio inmediatamente en SharedPreferences a través de Riverpod
-                    final updatedRule = (existingRule ??
-                            AppRule(
-                              packageName: app.packageName,
-                              isEnabled: val,
-                              initialThresholdMinutes: 30,
-                              repeatIntervalMinutes: 10,
-                            ))
-                        .copyWith(isEnabled: val);
-
-                    ref.read(appRulesProvider.notifier).saveRule(updatedRule);
-                  },
-                ),
-                const SizedBox(width: 2),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: AppTheme.textSegundary,
-                  size: 20,
-                ),
-              ],
-            ),
+        decoration: BoxDecoration(
+          color: isEnabled
+              ? Color.alphaBlend(primaryColor.withValues(alpha: 0.06), tileColor)
+              : tileColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isEnabled
+                ? primaryColor.withValues(alpha: 0.5)
+                : AppTheme.getBorderColor(context),
+            width: isEnabled ? 1.5 : 1,
           ),
         ),
+        child: ListTile(
+          onTap: () => _openLimitModal(context, existingRule),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+          leading: app.icon != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.memory(
+                    app.icon!,
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : Icon(
+                  Icons.apps,
+                  size: 40,
+                  color: primaryColor,
+                ),
+          title: Text(
+            app.appName ?? app.packageName,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: isEnabled
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      _Pill(
+                        icon: Icons.timer_outlined,
+                        text: "Aviso a los $initialThresholdMinutes min",
+                      ),
+                      _Pill(
+                        icon: Icons.repeat_rounded,
+                        text: "Cada $repeatIntervalMinutes min",
+                      ),
+                    ],
+                  ),
+                )
+              : const Text(
+                  "Sin límite",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textSegundary,
+                  ),
+                ),
+          trailing: Switch(
+            value: isEnabled,
+            onChanged: (val) {
+              final updatedRule = (existingRule ??
+                      AppRule(
+                        packageName: app.packageName,
+                        isEnabled: val,
+                        initialThresholdMinutes: 30,
+                        repeatIntervalMinutes: 10,
+                      ))
+                  .copyWith(isEnabled: val);
+
+              ref.read(appRulesProvider.notifier).saveRule(updatedRule);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _Pill({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: primary),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: primary,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -8,9 +8,7 @@ class AppRuleMapper {
       isEnabled: model.isEnabled,
       initialThresholdMinutes: model.initialThresholdMinutes,
       repeatIntervalMinutes: model.repeatIntervalMinutes,
-      snoozedUntil: model.snoozedUntil != null
-          ? DateTime.tryParse(model.snoozedUntil!)
-          : null,
+      snoozedUntil: model.snoozedUntil,
     );
   }
 
@@ -20,7 +18,7 @@ class AppRuleMapper {
       isEnabled: entity.isEnabled,
       initialThresholdMinutes: entity.initialThresholdMinutes,
       repeatIntervalMinutes: entity.repeatIntervalMinutes,
-      snoozedUntil: entity.snoozedUntil?.toIso8601String(),
+      snoozedUntil: entity.snoozedUntil,
     );
   }
 }
