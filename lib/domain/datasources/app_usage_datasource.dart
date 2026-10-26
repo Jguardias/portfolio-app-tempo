@@ -16,5 +16,8 @@ abstract class AppInfoDatasource {
   /// Solo el nombre (sin icono), mucho más liviano que getAppInfo.
   Future<String?> getAppName(String packageName);
 
+  /// Categoría traducida ('Juegos', 'Redes Sociales', 'Video', ... o 'Otro').
+  Future<String?> getAppCategory(String packageName);
+
   Future<List<AppInfoDevice>> getInstalledApps();
 }

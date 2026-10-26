@@ -1,10 +1,10 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tempo/config/theme/app_theme.dart';
 import 'package:tempo/domain/entities/app_rule.dart';
 import 'package:tempo/presentation/providers/appRules/app_rules_provider.dart';
+import 'package:tempo/presentation/widgets/shared/pro_gate.dart';
 
 class AppLimitModal extends ConsumerStatefulWidget {
   final Map<String, dynamic> appData;
@@ -27,6 +27,10 @@ class _AppLimitModalState extends ConsumerState<AppLimitModal> {
   late int _repeatMinutes;
   late bool _initialIsCustom;
   late bool _repeatIsCustom;
+  late bool _onOpen;
+
+  // Evita que un doble toque en "Guardar" cierre dos veces la pantalla
+  bool _saving = false;
 
   late final TextEditingController _initialController;
   late final TextEditingController _repeatController;
@@ -37,8 +41,8 @@ class _AppLimitModalState extends ConsumerState<AppLimitModal> {
     _initialMinutes =
         (widget.appData['initialThresholdMinutes'] as int?) ?? 30;
     _repeatMinutes = (widget.appData['repeatIntervalMinutes'] as int?) ?? 10;
+    _onOpen = (widget.appData['triggerOnOpen'] as bool?) ?? false;
 
-    // Si el valor guardado no es uno de los predefinidos, se muestra como "Otro"
     _initialIsCustom = !_initialPresets.contains(_initialMinutes);
     _repeatIsCustom = !_repeatPresets.contains(_repeatMinutes);
 
@@ -55,11 +59,41 @@ class _AppLimitModalState extends ConsumerState<AppLimitModal> {
     super.dispose();
   }
 
-  bool get _isValid =>
-      _initialMinutes >= _minValue &&
-      _initialMinutes <= _maxInitial &&
-      _repeatMinutes >= _minValue &&
-      _repeatMinutes <= _maxRepeat;
+  bool get _repeatValid =>
+      _repeatMinutes >= _minValue && _repeatMinutes <= _maxRepeat;
+
+  bool get _initialValid =>
+      _initialMinutes >= _minValue && _initialMinutes <= _maxInitial;
+
+  bool get _isValid => _onOpen ? _repeatValid : (_initialValid && _repeatValid);
+
+  Future<void> _save(String packageName) async {
+    if (_saving || !_isValid) return;
+    setState(() => _saving = true);
+
+    bool closed = false;
+    try {
+      final allowed = await ensureCanEnable(context, ref, packageName);
+      if (!allowed) return;
+
+      final newRule = AppRule(
+        packageName: packageName,
+        isEnabled: true,
+        initialThresholdMinutes: _initialValid ? _initialMinutes : 30,
+        repeatIntervalMinutes: _repeatMinutes,
+        triggerOnOpen: _onOpen,
+      );
+      await ref.read(appRulesProvider.notifier).saveRule(newRule);
+
+      if (mounted) {
+        closed = true;
+        Navigator.of(context).pop();
+      }
+    } finally {
+      // Si se cerró bien, no se vuelve a habilitar el botón (la hoja ya se va).
+      if (!closed && mounted) setState(() => _saving = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,8 +102,13 @@ class _AppLimitModalState extends ConsumerState<AppLimitModal> {
     final Uint8List? iconBytes = widget.appData['iconBytes'] as Uint8List?;
     final primary = Theme.of(context).colorScheme.primary;
 
+    final summary = !_isValid
+        ? "Escribe un valor válido para continuar."
+        : _onOpen
+            ? "Verás una pausa cada vez que abras esta app. Mientras sigas dentro no te interrumpimos.\n\nSi la cierras y la vuelves a abrir antes de $_repeatMinutes min, no sale otra pausa. Si pasan más de $_repeatMinutes min, sí."
+            : "Cuando hoy llegues a $_initialMinutes min de uso en esta app, verás una pausa.\n\nSi sigues usándola, verás otra cada vez que pasen $_repeatMinutes min desde la anterior.";
+
     return Padding(
-      // Sube el modal cuando aparece el teclado
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         decoration: BoxDecoration(
@@ -95,8 +134,6 @@ class _AppLimitModalState extends ConsumerState<AppLimitModal> {
                     ),
                   ),
                 ),
-
-                // Encabezado con el ícono de la app
                 Row(
                   children: [
                     ClipRRect(
@@ -116,55 +153,77 @@ class _AppLimitModalState extends ConsumerState<AppLimitModal> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 2),
                           const Text(
-                            "Define cuándo y cada cuánto te avisamos",
+                            "Define cuándo te mostramos la pausa",
                             style: TextStyle(
-                              fontSize: 13,
-                              color: AppTheme.textSegundary,
-                            ),
+                                fontSize: 13, color: AppTheme.textSegundary),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
 
-                _LimitCard(
-                  icon: Icons.timer_outlined,
-                  title: "Primer aviso",
-                  description: "Cuando llegues a este tiempo de uso hoy",
-                  value: _initialMinutes,
-                  presets: _initialPresets,
-                  isCustom: _initialIsCustom,
-                  controller: _initialController,
-                  min: _minValue,
-                  max: _maxInitial,
-                  onPreset: (preset) => setState(() {
-                    _initialIsCustom = false;
-                    _initialMinutes = preset;
-                  }),
-                  onCustom: () => setState(() {
-                    _initialIsCustom = true;
-                    _initialController.text =
-                        _initialMinutes > 0 ? '$_initialMinutes' : '';
-                  }),
-                  onChanged: (text) => setState(
-                      () => _initialMinutes = int.tryParse(text) ?? 0),
+                // Modo de la pausa
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(
+                        value: false,
+                        icon: Icon(Icons.timer_outlined),
+                        label: Text('Por tiempo de uso'),
+                      ),
+                      ButtonSegment(
+                        value: true,
+                        icon: Icon(Icons.touch_app_outlined),
+                        label: Text('Al abrir la app'),
+                      ),
+                    ],
+                    selected: {_onOpen},
+                    onSelectionChanged: (s) => setState(() => _onOpen = s.first),
+                  ),
                 ),
+                const SizedBox(height: 16),
 
-                const SizedBox(height: 12),
+                if (!_onOpen) ...[
+                  _LimitCard(
+                    icon: Icons.timer_outlined,
+                    title: "Primer aviso",
+                    description:
+                        "Te mostramos la primera pausa cuando hoy llegues a este tiempo de uso en la app",
+                    value: _initialMinutes,
+                    presets: _initialPresets,
+                    isCustom: _initialIsCustom,
+                    controller: _initialController,
+                    min: _minValue,
+                    max: _maxInitial,
+                    onPreset: (preset) => setState(() {
+                      _initialIsCustom = false;
+                      _initialMinutes = preset;
+                    }),
+                    onCustom: () => setState(() {
+                      _initialIsCustom = true;
+                      _initialController.text =
+                          _initialMinutes > 0 ? '$_initialMinutes' : '';
+                    }),
+                    onChanged: (text) => setState(
+                        () => _initialMinutes = int.tryParse(text) ?? 0),
+                  ),
+                  const SizedBox(height: 12),
+                ],
 
                 _LimitCard(
                   icon: Icons.repeat_rounded,
-                  title: "Repetir aviso",
-                  description: "Si sigues usándola, te avisamos cada",
+                  title: _onOpen ? "Descanso entre pausas" : "Repetir pausa",
+                  description: _onOpen
+                      ? "Si vuelves a abrir la app antes de que pasen estos minutos, no te mostramos otra pausa"
+                      : "Si sigues usándola, te mostramos otra pausa cuando pasen estos minutos desde la anterior",
                   value: _repeatMinutes,
                   presets: _repeatPresets,
                   isCustom: _repeatIsCustom,
@@ -185,8 +244,6 @@ class _AppLimitModalState extends ConsumerState<AppLimitModal> {
                 ),
 
                 const SizedBox(height: 16),
-
-                // Resumen en lenguaje natural
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
@@ -197,54 +254,36 @@ class _AppLimitModalState extends ConsumerState<AppLimitModal> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.info_outline_rounded,
-                          size: 18, color: primary),
+                      Icon(Icons.info_outline_rounded, size: 18, color: primary),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                          _isValid
-                              ? "Te avisaremos al llegar a $_initialMinutes min de uso hoy y luego cada $_repeatMinutes min mientras sigas en la app."
-                              : "Escribe un valor válido para continuar.",
-                          style: const TextStyle(fontSize: 13, height: 1.4),
-                        ),
+                        child: Text(summary,
+                            style: const TextStyle(fontSize: 13, height: 1.4)),
                       ),
                     ],
                   ),
                 ),
 
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: double.infinity,
                   height: 52,
                   child: FilledButton(
                     style: FilledButton.styleFrom(
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
+                          borderRadius: BorderRadius.circular(14)),
                     ),
-                    onPressed: _isValid
-                        ? () async {
-                            final newRule = AppRule(
-                              packageName: packageName,
-                              isEnabled: true,
-                              initialThresholdMinutes: _initialMinutes,
-                              repeatIntervalMinutes: _repeatMinutes,
-                            );
-
-                            await ref
-                                .read(appRulesProvider.notifier)
-                                .saveRule(newRule);
-
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                            }
-                          }
-                        : null,
-                    child: const Text(
-                      "Guardar",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
+                    onPressed:
+                        (_isValid && !_saving) ? () => _save(packageName) : null,
+                    child: _saving
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
+                          )
+                        : const Text("Guardar",
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -305,10 +344,8 @@ class _LimitCard extends StatelessWidget {
               Icon(icon, size: 20, color: primary),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+                child: Text(title,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
               Text(
                 value > 0 ? "$value min" : "— min",
@@ -321,13 +358,9 @@ class _LimitCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppTheme.textSegundary,
-            ),
-          ),
+          Text(description,
+              style: const TextStyle(
+                  fontSize: 13, color: AppTheme.textSegundary)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -361,8 +394,7 @@ class _LimitCard extends StatelessWidget {
                 suffixText: "min",
                 errorText: invalid ? "Escribe un valor entre $min y $max" : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                    borderRadius: BorderRadius.circular(12)),
               ),
               onChanged: onChanged,
             ),

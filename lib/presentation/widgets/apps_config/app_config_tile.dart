@@ -5,7 +5,7 @@ import 'package:tempo/domain/entities/app_rule.dart';
 import 'package:tempo/domain/entities/app_usage.dart';
 import 'package:tempo/presentation/providers/appRules/app_rules_provider.dart';
 import 'package:tempo/presentation/widgets/apps_config/app_limit_modal.dart';
-
+import 'package:tempo/presentation/widgets/shared/pro_gate.dart';
 class AppConfigTile extends ConsumerWidget {
   final AppUsage app;
 
@@ -22,6 +22,7 @@ class AppConfigTile extends ConsumerWidget {
         'isEnabled': existingRule?.isEnabled ?? false,
         'initialThresholdMinutes': existingRule?.initialThresholdMinutes ?? 30,
         'repeatIntervalMinutes': existingRule?.repeatIntervalMinutes ?? 10,
+        'triggerOnOpen': existingRule?.triggerOnOpen ?? false,
         'iconBytes': app.icon,
       }),
     );
@@ -39,7 +40,7 @@ class AppConfigTile extends ConsumerWidget {
     final isEnabled = existingRule?.isEnabled ?? false;
     final initialThresholdMinutes = existingRule?.initialThresholdMinutes ?? 30;
     final repeatIntervalMinutes = existingRule?.repeatIntervalMinutes ?? 10;
-
+    final triggerOnOpen = existingRule?.triggerOnOpen ?? false;
     final tileColor = AppTheme.getTileColor(context);
 
     return Padding(
@@ -89,19 +90,30 @@ class AppConfigTile extends ConsumerWidget {
                     spacing: 6,
                     runSpacing: 4,
                     children: [
-                      _Pill(
-                        icon: Icons.timer_outlined,
-                        text: "Aviso a los $initialThresholdMinutes min",
-                      ),
-                      _Pill(
-                        icon: Icons.repeat_rounded,
-                        text: "Cada $repeatIntervalMinutes min",
-                      ),
+                      if (triggerOnOpen) ...[
+                        const _Pill(
+                          icon: Icons.touch_app_outlined,
+                          text: "Al abrir la app",
+                        ),
+                        _Pill(
+                          icon: Icons.snooze_rounded,
+                          text: "Descanso de $repeatIntervalMinutes min",
+                        ),
+                      ] else ...[
+                        _Pill(
+                          icon: Icons.timer_outlined,
+                          text: "Aviso a los $initialThresholdMinutes min",
+                        ),
+                        _Pill(
+                          icon: Icons.repeat_rounded,
+                          text: "Cada $repeatIntervalMinutes min",
+                        ),
+                      ],
                     ],
                   ),
                 )
               : const Text(
-                  "Sin límite",
+                  "Sin pausas activadas",
                   style: TextStyle(
                     fontSize: 13,
                     color: AppTheme.textSegundary,
@@ -109,7 +121,10 @@ class AppConfigTile extends ConsumerWidget {
                 ),
           trailing: Switch(
             value: isEnabled,
-            onChanged: (val) {
+               onChanged: (val) async {
+              if (val && !await ensureCanEnable(context, ref, app.packageName)) {
+                return;
+              }
               final updatedRule = (existingRule ??
                       AppRule(
                         packageName: app.packageName,

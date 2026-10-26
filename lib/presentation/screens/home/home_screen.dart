@@ -6,6 +6,8 @@ import 'package:tempo/presentation/providers/appUsage/app_usage_provider_datasou
 import 'package:tempo/presentation/widgets/home/app_usage_tile.dart';
 import 'package:tempo/presentation/widgets/shared/app_search_bar.dart';
 import 'package:tempo/presentation/widgets/shared/section_header.dart';
+import 'package:tempo/presentation/widgets/home/summary_entry_card.dart';
+
 
 class HomeScreen extends ConsumerStatefulWidget {
   static const name = "home-screen";
@@ -100,12 +102,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                 return SliverMainAxisGroup(
                   slivers: [
-                    if (query.isEmpty)
+                    if (query.isEmpty) ...[
+                      const SliverToBoxAdapter(child: SummaryEntryCard()),
                       SliverToBoxAdapter(
                         child: _TotalSummary(
                           total: Duration(milliseconds: totalMs),
                         ),
                       ),
+                    ],
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
                         childCount: filteredApps.length,

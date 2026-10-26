@@ -3,6 +3,7 @@ class AppRuleModel {
   final bool isEnabled;
   final int initialThresholdMinutes;
   final int repeatIntervalMinutes;
+  final bool triggerOnOpen;
   final DateTime? snoozedUntil;
 
   AppRuleModel({
@@ -10,6 +11,7 @@ class AppRuleModel {
     required this.isEnabled,
     required this.initialThresholdMinutes,
     required this.repeatIntervalMinutes,
+    this.triggerOnOpen = false,
     this.snoozedUntil,
   });
 
@@ -19,6 +21,7 @@ class AppRuleModel {
       'isEnabled': isEnabled,
       'initialThresholdMinutes': initialThresholdMinutes,
       'repeatIntervalMinutes': repeatIntervalMinutes,
+      'triggerOnOpen': triggerOnOpen,
       'snoozedUntil': snoozedUntil?.toIso8601String(),
     };
   }
@@ -29,8 +32,9 @@ class AppRuleModel {
       isEnabled: json['isEnabled'] as bool? ?? true,
       initialThresholdMinutes: json['initialThresholdMinutes'] as int? ?? 30,
       repeatIntervalMinutes: json['repeatIntervalMinutes'] as int? ?? 10,
-      snoozedUntil: json['snoozedUntil'] != null 
-          ? DateTime.parse(json['snoozedUntil'] as String) 
+      triggerOnOpen: json['triggerOnOpen'] as bool? ?? false,
+      snoozedUntil: json['snoozedUntil'] != null
+          ? DateTime.parse(json['snoozedUntil'] as String)
           : null,
     );
   }

@@ -8,6 +8,7 @@ class AppRuleMapper {
       isEnabled: model.isEnabled,
       initialThresholdMinutes: model.initialThresholdMinutes,
       repeatIntervalMinutes: model.repeatIntervalMinutes,
+      triggerOnOpen: model.triggerOnOpen,
       snoozedUntil: model.snoozedUntil,
     );
   }
@@ -18,6 +19,7 @@ class AppRuleMapper {
       isEnabled: entity.isEnabled,
       initialThresholdMinutes: entity.initialThresholdMinutes,
       repeatIntervalMinutes: entity.repeatIntervalMinutes,
+      triggerOnOpen: entity.triggerOnOpen,
       snoozedUntil: entity.snoozedUntil,
     );
   }

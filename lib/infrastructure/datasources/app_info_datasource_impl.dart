@@ -1,7 +1,8 @@
-import 'package:tempo/domain/entities/app_info_device.dart';
 import 'package:flutter_device_apps/flutter_device_apps.dart';
 import 'package:tempo/domain/datasources/app_usage_datasource.dart';
+import 'package:tempo/domain/entities/app_info_device.dart';
 import 'package:tempo/infrastructure/mappers/app_info_mapper.dart';
+import 'package:tempo/infrastructure/mappers/helpers/category_translator.dart';
 import 'package:tempo/infrastructure/models/app_metadata_model.dart';
 
 class AppInfoDatasourceImpl implements AppInfoDatasource {
@@ -12,8 +13,7 @@ class AppInfoDatasourceImpl implements AppInfoDatasource {
       includeIcon: true,
     );
     final AppMetaData model = AppMetaData.fromFlutterDevice(appInfo);
-    final app = AppInfoMapper.toEntity(model);
-    return app;
+    return AppInfoMapper.toEntity(model);
   }
 
   @override
@@ -23,6 +23,15 @@ class AppInfoDatasourceImpl implements AppInfoDatasource {
       includeIcon: false,
     );
     return appInfo?.appName;
+  }
+
+  @override
+  Future<String?> getAppCategory(String packageName) async {
+    final appInfo = await FlutterDeviceApps.getApp(
+      packageName,
+      includeIcon: false,
+    );
+    return CategoryTranslator.mapCategory(appInfo?.category);
   }
 
   @override

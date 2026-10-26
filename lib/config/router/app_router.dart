@@ -40,7 +40,13 @@ final GoRouter appRoute = GoRouter(
       name: AppTutorialScreen.name,
       builder: (context, state) => const AppTutorialScreen(),
     ),
-
+    
+    GoRoute(
+      path: '/summary',
+      name: SummaryScreen.name,
+      builder: (context, state) => const SummaryScreen(),
+    ),
+    
     // Rutas con BottomNavigationBar persistente
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
