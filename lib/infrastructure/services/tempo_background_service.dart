@@ -275,18 +275,22 @@ void onStartService(ServiceInstance service) async {
       }
 
       // 5. ¿SE CUMPLE LA REGLA?
-      bool shouldShow = rule.triggerOnOpen;
-      if (!rule.triggerOnOpen) {
-        final usage = await usageDatasource.getDailyUsageForPackage(current);
-        shouldShow = usage.inMinutes >= rule.initialThresholdMinutes;
-      }
+      final usageMinutes =
+          (await usageDatasource.getDailyUsageForPackage(current)).inMinutes;
+      final bool shouldShow =
+          rule.triggerOnOpen || usageMinutes >= rule.initialThresholdMinutes;
       if (!shouldShow) return;
 
       tempoLog("[Tempo Service] Regla cumplida para $current (${rule.triggerOnOpen ? 'al abrir' : 'por tiempo'}). Mostrando pausa...");
 
       final appName = await resolveName(current);
       final category = await resolveCategory(current);
-      final quote = QuoteService().getRandomQuote(category: category);
+       final quote = QuoteService().getRandomQuote(
+        category: category,
+        onOpen: rule.triggerOnOpen,
+        appName: appName,
+        minutes: usageMinutes,
+      );
       final askIntent = await PauseEventStore.shouldAskIntent(current);
       final pauseId = DateTime.now().millisecondsSinceEpoch.toString();
 

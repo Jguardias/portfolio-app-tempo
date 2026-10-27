@@ -134,5 +134,66 @@ class CategoryQuotes {
       "«Tu atención también puede estar en la conversación, el camino o la persona que tienes cerca.»",
       "«Cuando termine esto, decide si quieres seguir o si ya tuviste suficiente.»",
     ],
+    'Imagen': [
+      "«¿Estás buscando una foto en concreto o recorriendo recuerdos sin rumbo?»",
+      "«Las mejores fotos se viven, no solo se miran. ¿Qué momento quieres crear hoy?»",
+      "«Antes de seguir mirando: ¿hay algo real que podrías hacer ahora?»",
+      "«Mirar recuerdos está bien. Quedarse atrapado en ellos, no tanto.»",
+      "«Cierra la galería y haz una foto de algo que tengas enfrente.»",
+      "«¿Qué quieres encontrar aquí? Si ya lo hallaste, puedes parar.»",
+    ],
+    'Productividad': [
+      "«¿Esto te acerca a lo que te propusiste hoy o es una forma bonita de postergar?»",
+      "«Organizar es útil; reorganizar sin parar, no tanto. ¿En cuál estás?»",
+      "«¿Cuál es la siguiente cosa pequeña que sí puedes terminar?»",
+      "«Pausa corta: respira, estírate y vuelve con una sola tarea clara.»",
+      "«No necesitas hacerlo todo hoy. ¿Qué es lo realmente importante?»",
+      "«Si estás cansado, descansar también es productivo.»",
+    ],
   };
+
+   /// Al abrir la app: frases sobre la intención ANTES de empezar.
+  static const List<String> onOpen = [
+    "«Antes de entrar: ¿qué quieres hacer en {app}?»",
+    "«¿Abriste {app} porque querías o porque la mano fue sola?»",
+    "«Un segundo. ¿Para qué vas a usar {app} ahora?»",
+    "«Respira. {app} puede esperar un minuto mientras decides.»",
+    "«¿Qué buscas en {app}? Si lo sabes, entra y hazlo; si no, quizá no hace falta.»",
+    "«Entrar con un objetivo es distinto a entrar por costumbre. ¿Cuál es el tuyo?»",
+    "«¿Qué tan importante es esto ahora mismo?»",
+    "«Antes de abrir {app}, piensa en una cosa que quieras hacer hoy y que no sea mirar la pantalla.»",
+    "«Te doy cinco segundos para decidir con calma. ¿Sigues?»",
+    "«La idea no es prohibirte nada, solo que lo decidas tú.»",
+    "«Si entras, que sea a propósito.»",
+    "«¿Ya miraste hace poco {app}? ¿Qué esperas encontrar ahora?»",
+  ];
+
+  /// Por tiempo de uso: frases sobre lo que ya llevas hoy.
+  static const List<String> byTime = [
+    "«Hoy ya llevas {min} en {app}. ¿Es así como querías usar ese tiempo?»",
+    "«{min} en {app} hoy. ¿Qué dejaste de hacer mientras tanto?»",
+    "«Llevas {min} en {app}. Buen momento para parar un instante y decidir.»",
+    "«{min} dan para mucho. ¿Esto es lo que querías hacer con ellos?»",
+    "«Ya van {min} hoy en {app}. ¿Sigues por gusto o por inercia?»",
+    "«Haz una cuenta rápida: {min} en {app}. ¿Cómo te sientes con eso?»",
+    "«Tu tiempo en {app} hoy: {min}. Decide si quieres sumarle más.»",
+    "«Mira el reloj: {min} en {app}. ¿Hay algo más que te esté esperando?»",
+    "«Pasó un buen rato en {app}. ¿Quieres seguir o cambiar de plan?»",
+    "«Un descanso para los ojos y la cabeza. Llevas {min} aquí.»",
+    "«Si sigues, que sea con ganas. Si no, ahora es buen momento para soltar.»",
+    "«¿Cómo está tu cuerpo? Llevas {min} en {app}: estírate, respira, toma agua.»",
+  ];
+
+  /// De 10 p. m. a 5 a. m. se mezclan con las demás.
+  static const List<String> night = [
+    "«Es tarde. Tu descanso de mañana empieza con lo que hagas ahora.»",
+    "«A esta hora, la pantalla le roba sueño a tu mañana.»",
+    "«¿Esto no puede esperar a mañana? El sueño no se recupera con scroll.»",
+    "«Dormir bien también es cuidarte. ¿Dejas el celular?»",
+    "«La luz de la pantalla le dice a tu cuerpo que siga despierto. Considera parar.»",
+    "«Mañana vas a agradecer haber dormido un poco más.»",
+    "«Si no puedes dormir, mejor respira hondo que seguir mirando.»",
+    "«Es de noche: ¿esto de verdad no puede esperar?»",
+  ];
+
 }
