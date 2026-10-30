@@ -5,8 +5,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:tempo/config/theme/app_theme.dart';
 import 'package:tempo/presentation/providers/settings/theme_mode_provider.dart';
 import 'package:tempo/presentation/widgets/shared/section_header.dart';
-import 'package:tempo/presentation/providers/settings/intent_mode_provider.dart';
 import 'package:tempo/presentation/providers/settings/pro_provider.dart';
+import 'package:tempo/presentation/widgets/settings/intent_settings_card.dart';
 class SettingsScreen extends ConsumerWidget {
   static const name = 'settings-screen';
 
@@ -47,7 +47,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    final intentMode = ref.watch(intentModeProvider);
+    
     final isPro = ref.watch(isProProvider);
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(context),
@@ -108,60 +108,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                                    _Group(
-                    label: 'Pausa',
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Preguntarme para qué uso la app',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              switch (intentMode) {
-                                IntentMode.always =>
-                                  'En cada pausa te preguntamos para qué usas la app. Es opcional: puedes ignorarla.',
-                                IntentMode.daily =>
-                                  'Solo en la primera pausa del día de cada app. En las demás no preguntamos.',
-                                IntentMode.never =>
-                                  'No preguntamos nunca. Las pausas se registran sin motivo.',
-                              },
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppTheme.textSegundary,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              child: SegmentedButton<IntentMode>(
-                                showSelectedIcon: false,
-                                segments: const [
-                                  ButtonSegment(
-                                      value: IntentMode.always,
-                                      label: Text('Siempre')),
-                                  ButtonSegment(
-                                      value: IntentMode.daily,
-                                      label: Text('1 vez al día')),
-                                  ButtonSegment(
-                                      value: IntentMode.never,
-                                      label: Text('Nunca')),
-                                ],
-                                selected: {intentMode},
-                                onSelectionChanged: (s) => ref
-                                    .read(intentModeProvider.notifier)
-                                    .setMode(s.first),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  const IntentSettingsCard(),
                   if (kDebugMode)
                     _Group(
                       label: 'Solo pruebas (debug)',

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tempo/config/helpers/duration_format.dart';
 import 'package:tempo/config/theme/app_theme.dart';
 import 'package:tempo/presentation/providers/appUsage/app_search_provider.dart';
 import 'package:tempo/presentation/providers/appUsage/app_usage_provider_datasource.dart';
 import 'package:tempo/presentation/widgets/home/app_usage_tile.dart';
+import 'package:tempo/presentation/widgets/home/summary_entry_card.dart';
+import 'package:tempo/presentation/widgets/home/usage_donut_card.dart';
 import 'package:tempo/presentation/widgets/shared/app_search_bar.dart';
 import 'package:tempo/presentation/widgets/shared/section_header.dart';
-import 'package:tempo/presentation/widgets/home/summary_entry_card.dart';
-
 
 class HomeScreen extends ConsumerStatefulWidget {
   static const name = "home-screen";
@@ -83,9 +84,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 }).toList();
 
                 if (filteredApps.isEmpty) {
-                  return const SliverFillRemaining(
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
                     child: Center(
-                      child: Text("No se encontraron aplicaciones."),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          query.isEmpty
+                              ? "Aún no hay uso registrado hoy. Aparecerá aquí cuando uses tu teléfono."
+                              : "No se encontraron aplicaciones.",
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
                   );
                 }
@@ -109,6 +119,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           total: Duration(milliseconds: totalMs),
                         ),
                       ),
+                      SliverToBoxAdapter(child: UsageDonutCard(apps: apps)),
                     ],
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
@@ -142,13 +153,6 @@ class _TotalSummary extends StatelessWidget {
 
   const _TotalSummary({required this.total});
 
-  String _format(Duration d) {
-    final hours = d.inHours;
-    final minutes = d.inMinutes % 60;
-    if (hours > 0) return "$hours h $minutes min";
-    return "${d.inMinutes} min";
-  }
-
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
@@ -173,7 +177,7 @@ class _TotalSummary extends StatelessWidget {
               ),
             ),
             Text(
-              _format(total),
+              formatDuration(total),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
