@@ -5,6 +5,7 @@ import 'package:tempo/config/theme/app_theme.dart';
 import 'package:tempo/infrastructure/services/tempo_background_service.dart';
 import 'package:tempo/presentation/providers/settings/theme_mode_provider.dart';
 import 'package:tempo/presentation/screens/splash/tempo_splash.dart';
+import 'package:tempo/presentation/providers/settings/purchase_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,13 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> {
   bool _showSplash = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Arranca la escucha de compras desde el inicio de la app
+    ref.read(purchaseProvider);
+  }
 
   @override
   Widget build(BuildContext context) {
