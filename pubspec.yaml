@@ -2,7 +2,7 @@ name: tempo
 description: "Tempo: Una herramienta de bienestar digital enfocada en la gestión
   de la intención y reducción de la distracción en Android."
 publish_to: "none"
-version: 0.1.0+2
+version: 0.1.0+3
 
 environment:
   sdk: ^3.11.4
