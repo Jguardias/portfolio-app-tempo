@@ -14,7 +14,7 @@ class SettingsScreen extends ConsumerWidget {
   static const name = 'settings-screen';
 
   /// Actualízala junto con la versión del pubspec.yaml.
-  static const String appVersion = '0.1.0';
+  static const String appVersion = '1.0.0+4';
 
   const SettingsScreen({super.key});
 
