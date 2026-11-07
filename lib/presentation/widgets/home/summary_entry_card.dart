@@ -26,9 +26,34 @@ class SummaryEntryCard extends ConsumerWidget {
           leading: Icon(Icons.insights_rounded, color: primary),
           title: const Text('Tus motivos',
               style: TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: const Text('Lo que dijiste en tus pausas · últimos 7 días'),
-          trailing: Icon(
-            isPro ? Icons.chevron_right_rounded : Icons.lock_outline_rounded,
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Lo que dijiste en tus pausas · últimos 7 días'),
+              if (!isPro)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Resumen básico gratis',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: primary,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          trailing: const Icon(
+            Icons.chevron_right_rounded,
             color: AppTheme.textSegundary,
           ),
         ),

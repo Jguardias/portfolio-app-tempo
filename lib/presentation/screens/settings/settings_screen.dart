@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:tempo/config/constants/app_links.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:tempo/config/theme/app_theme.dart';
@@ -7,6 +9,7 @@ import 'package:tempo/presentation/providers/settings/theme_mode_provider.dart';
 import 'package:tempo/presentation/widgets/shared/section_header.dart';
 import 'package:tempo/presentation/providers/settings/pro_provider.dart';
 import 'package:tempo/presentation/widgets/settings/intent_settings_card.dart';
+
 class SettingsScreen extends ConsumerWidget {
   static const name = 'settings-screen';
 
@@ -44,10 +47,25 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _openReview(BuildContext context) async {
+    bool opened = false;
+    try {
+      opened = await launchUrl(
+        Uri.parse(AppLinks.playStoreUrl),
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (_) {}
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo abrir Google Play.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    
+
     final isPro = ref.watch(isProProvider);
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(context),
@@ -144,6 +162,19 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  if (AppLinks.reviewEnabled)
+                    _Group(
+                      label: 'Tu opinión',
+                      children: [
+                        _SettingsTile(
+                          icon: Icons.star_outline_rounded,
+                          title: 'Califica Tempo en Google Play',
+                          subtitle:
+                              'Tu reseña ayuda a que más personas la encuentren',
+                          onTap: () => _openReview(context),
+                        ),
+                      ],
+                    ),
                   _Group(
                     label: 'Información',
                     children: [
@@ -153,7 +184,7 @@ class SettingsScreen extends ConsumerWidget {
                         onTap: () => _showInfo(
                           context,
                           title: 'Cómo funciona Tempo',
-                            body:
+                          body:
                               'Tempo te muestra una pausa corta para que decidas con calma si quieres seguir en una app.\n\n'
                               'Para cada app eliges cuándo aparece:\n\n'
                               '• Al abrir la app: la pausa sale justo al abrirla, y solo ahí. Mientras sigas dentro no te interrumpe. Si la cierras y la reabres antes de que pase el "descanso" que elijas, no vuelve a salir.\n\n'

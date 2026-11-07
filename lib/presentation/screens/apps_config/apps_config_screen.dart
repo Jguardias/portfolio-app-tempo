@@ -66,8 +66,14 @@ class AppsConfigScreen extends ConsumerWidget {
                 final others =
                     filteredApps.where((app) => !isActive(app)).toList();
 
+                // Aviso para quien aún no activó ninguna app
+                final bool noneActiveAtAll =
+                    !apps.any(isActive) && query.isEmpty;
+
                 return SliverMainAxisGroup(
                   slivers: [
+                    if (noneActiveAtAll)
+                      const SliverToBoxAdapter(child: _FirstAppHint()),
                     if (active.isNotEmpty) ...[
                       _ListLabel(
                         icon: Icons.notifications_active_rounded,
@@ -94,6 +100,50 @@ class AppsConfigScreen extends ConsumerWidget {
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FirstAppHint extends StatelessWidget {
+  const _FirstAppHint();
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: primary.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.toggle_on_rounded, color: primary, size: 28),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Activa tu primera app',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Usa el interruptor de una app de la lista y Tempo te mostrará una pausa cuando la uses. Toca la tarjeta para elegir cuándo.',
+                    style: TextStyle(fontSize: 13, height: 1.4),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
