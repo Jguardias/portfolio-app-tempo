@@ -9,44 +9,12 @@ class IntentSettingsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(intentModeProvider);
-    final primary = Theme.of(context).colorScheme.primary;
 
-    Widget option(IntentMode m, String title, String text) {
-      final selected = mode == m;
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Icon(
-                selected
-                    ? Icons.radio_button_checked_rounded
-                    : Icons.radio_button_unchecked_rounded,
-                size: 18,
-                color: selected ? primary : AppTheme.textSegundary,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '$title: ',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    TextSpan(text: text),
-                  ],
-                ),
-                style: const TextStyle(fontSize: 13, height: 1.4),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    final String detail = switch (mode) {
+      IntentMode.always => 'Te lo preguntamos en todas las pausas.',
+      IntentMode.daily => 'Solo en la primera pausa del día de cada app.',
+      IntentMode.never => 'No te preguntamos. Las pausas se guardan sin motivo.',
+    };
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -79,13 +47,10 @@ class IntentSettingsCard extends ConsumerWidget {
                   'Preguntarme para qué uso la app',
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 const Text(
-                  'Cuando Tempo te muestra una pausa, puede hacerte una pregunta opcional: '
-                  '"¿Para qué estás usando esta app?", con algunas opciones para elegir. '
-                  'No es obligatoria: puedes ignorarla y seguir. Lo que respondas se guarda '
-                  'solo en tu teléfono y alimenta el resumen "Tus motivos".\n\n'
-                  'Aquí eliges cada cuánto quieres que aparezca esa pregunta:',
+                  'En cada pausa puedes decir, si quieres, para qué usas la app. '
+                  'Es opcional y se guarda solo en tu teléfono.',
                   style: TextStyle(
                     fontSize: 13,
                     color: AppTheme.textSegundary,
@@ -101,7 +66,7 @@ class IntentSettingsCard extends ConsumerWidget {
                       ButtonSegment(
                           value: IntentMode.always, label: Text('Siempre')),
                       ButtonSegment(
-                          value: IntentMode.daily, label: Text('1.ª del día')),
+                          value: IntentMode.daily, label: Text('1 al día')),
                       ButtonSegment(
                           value: IntentMode.never, label: Text('Nunca')),
                     ],
@@ -110,13 +75,11 @@ class IntentSettingsCard extends ConsumerWidget {
                         ref.read(intentModeProvider.notifier).setMode(s.first),
                   ),
                 ),
-                const SizedBox(height: 14),
-                option(IntentMode.always, 'Siempre',
-                    'la pregunta aparece en todas las pausas.'),
-                option(IntentMode.daily, '1.ª del día',
-                    'solo en la primera pausa del día de cada app. En las demás pausas del mismo día no te preguntamos.'),
-                option(IntentMode.never, 'Nunca',
-                    'no te preguntamos nunca. Las pausas se guardan sin motivo.'),
+                const SizedBox(height: 10),
+                Text(
+                  detail,
+                  style: const TextStyle(fontSize: 13, height: 1.4),
+                ),
               ],
             ),
           ),
